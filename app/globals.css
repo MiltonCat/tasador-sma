@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --navy: #0f172a;
+  --emerald: #10b981;
+  --emerald-dark: #059669;
+  --slate: #64748b;
+  --border: #e2e8f0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--navy);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+input, select {
+  appearance: none;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  animation: fadeUp 0.35s ease forwards;
+}
