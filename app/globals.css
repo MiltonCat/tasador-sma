@@ -3,7 +3,8 @@
 :root {
   --bg: #f1f5f9;
   --card: #ffffff;
-  --navy: #0f172a;
+  --navy: #0b1220;
+  --coral: #eb4d67;
   --emerald: #10b981;
   --emerald-dark: #059669;
   --slate: #64748b;
@@ -13,7 +14,7 @@
 body {
   background: var(--bg);
   color: var(--navy);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -22,8 +23,9 @@ input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
 }
 
-input, select {
+input, select, button {
   appearance: none;
+  font-family: inherit;
 }
 
 @keyframes fadeUp {

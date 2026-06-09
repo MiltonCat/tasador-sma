@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BRAND, MODEL_STATS, OWNER, SITE_PRINCIPAL, WA_LINK_GENERICO, buildWhatsAppLink } from "./config";
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -126,20 +127,35 @@ export default function Home() {
     <div style={{ background: "var(--bg)", minHeight: "100dvh", paddingBottom: 88 }}>
 
       {/* ── HEADER ──────────────────────────────────────────── */}
-      <header style={{ background: "var(--navy)", padding: "14px 20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 9, background: "var(--emerald)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, color: "white", fontSize: 13, flexShrink: 0 }}>
-            T
+      <header style={{ background: "var(--navy)", padding: "15px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div style={{ maxWidth: 480, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo-mc-blanco.png" alt={`Logo ${OWNER}`}
+                 style={{ width: 34, height: 30, objectFit: "contain", flexShrink: 0 }} />
+            <div>
+              <p style={{ color: "white", fontWeight: 700, fontSize: 15, lineHeight: 1.25, letterSpacing: "0.02em" }}>
+                Tasador<span style={{ color: "var(--coral)" }}>SMA</span>
+              </p>
+              <p style={{ color: "#64748b", fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", whiteSpace: "nowrap" }}>
+                San Martín de los Andes
+              </p>
+            </div>
           </div>
-          <div>
-            <p style={{ color: "white", fontWeight: 700, fontSize: 15, lineHeight: 1.2 }}>TasadorSMA</p>
-            <p style={{ color: "rgba(148,163,184,0.9)", fontSize: 11 }}>San Martín de los Andes · IA</p>
-          </div>
+          <a href={SITE_PRINCIPAL} target="_blank" rel="noopener"
+             style={{
+               color: "#cbd5e1", fontSize: 11, fontWeight: 600, textDecoration: "none",
+               border: "1px solid rgba(255,255,255,0.18)", borderRadius: 999,
+               padding: "6px 12px", whiteSpace: "nowrap", flexShrink: 0,
+             }}>
+            por <span style={{ color: "white" }}>{OWNER}</span>
+          </a>
         </div>
       </header>
 
       {/* ── HERO ────────────────────────────────────────────── */}
       <section style={{ background: "var(--navy)", padding: "20px 20px 28px" }}>
+        <div style={{ maxWidth: 480, margin: "0 auto" }}>
         <p style={{ color: "#34d399", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
           Tasación inmobiliaria con IA
         </p>
@@ -152,9 +168,9 @@ export default function Home() {
         {/* KPIs — scroll horizontal */}
         <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 2, WebkitOverflowScrolling: "touch" as never }}>
           {[
-            { value: "16.1%", sub: "Error promedio" },
-            { value: "342",   sub: "Propiedades" },
-            { value: "38",    sub: "Barrios" },
+            { value: MODEL_STATS.errorPromedio,        sub: "Error promedio" },
+            { value: String(MODEL_STATS.propiedades),  sub: "Propiedades" },
+            { value: String(MODEL_STATS.barrios),      sub: "Barrios" },
           ].map(k => (
             <div key={k.sub} style={{ flexShrink: 0, padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}>
               <p style={{ color: "white", fontWeight: 800, fontSize: 18, lineHeight: 1 }}>{k.value}</p>
@@ -162,10 +178,11 @@ export default function Home() {
             </div>
           ))}
         </div>
+        </div>
       </section>
 
       {/* ── CONTENIDO PRINCIPAL ─────────────────────────────── */}
-      <main style={{ padding: "16px 16px 0" }}>
+      <main style={{ padding: "16px 16px 0", maxWidth: 480, marginLeft: "auto", marginRight: "auto" }}>
 
         {/* ── FORMULARIO ──────────────────────────────────────── */}
         <form id="tasar-form" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
@@ -294,8 +311,14 @@ export default function Home() {
 
           {/* Error */}
           {error && (
-            <div style={{ padding: 14, borderRadius: 12, background: "#fef2f2", border: "1px solid #fecaca", color: "#b91c1c", fontSize: 13 }}>
-              {error}
+            <div style={{ padding: 14, borderRadius: 12, background: "#fef2f2", border: "1px solid #fecaca", fontSize: 13 }}>
+              <p style={{ color: "#b91c1c", marginBottom: 8 }}>
+                No pudimos calcular la tasación en este momento. ({error})
+              </p>
+              <a href={WA_LINK_GENERICO} target="_blank" rel="noopener"
+                 style={{ color: "#166534", fontWeight: 700, textDecoration: "none" }}>
+                Escribime directo por WhatsApp y te paso la valuación →
+              </a>
             </div>
           )}
         </form>
@@ -411,6 +434,38 @@ export default function Home() {
               </p>
             </div>
 
+            {/* ── CTA TASACIÓN PROFESIONAL ──────────────────────── */}
+            <div style={{ borderRadius: 18, overflow: "hidden", border: "1px solid var(--border)", background: "var(--navy)", padding: "22px 20px" }}>
+              <p style={{ color: "#34d399", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
+                El siguiente paso
+              </p>
+              <p style={{ color: "white", fontWeight: 800, fontSize: 19, lineHeight: 1.3, marginBottom: 8 }}>
+                Este es el precio de publicación.<br />¿Querés saber a cuánto se cierra de verdad?
+              </p>
+              <p style={{ color: "rgba(148,163,184,0.9)", fontSize: 13, lineHeight: 1.6, marginBottom: 16 }}>
+                Una tasación profesional ajusta por estado de la propiedad, compara con ventas reales
+                de tu barrio y te dice el precio de cierre. Sin cargo y sin compromiso, por {BRAND}.
+              </p>
+              <a href={buildWhatsAppLink({
+                   tipo: form.tipo_propiedad,
+                   barrio: form.barrio,
+                   superficie: form.superficie_cubierta,
+                   valorUsd: resultado.valor_total_usd,
+                 })}
+                 target="_blank" rel="noopener"
+                 style={{
+                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                   width: "100%", padding: "15px", borderRadius: 14, boxSizing: "border-box",
+                   background: "#25D366", color: "white", fontWeight: 800, fontSize: 15,
+                   textDecoration: "none",
+                 }}>
+                Pedir tasación profesional gratis
+              </a>
+              <p style={{ color: "rgba(148,163,184,0.7)", fontSize: 11, textAlign: "center", marginTop: 10 }}>
+                Te contesta Milton Catalán por WhatsApp · Respuesta en menos de 48 hs
+              </p>
+            </div>
+
             {/* Nueva tasación */}
             <button type="button" onClick={() => setResultado(null)}
                     style={{ width: "100%", padding: "14px", borderRadius: 14, border: "1px solid var(--border)", background: "var(--card)", color: "var(--slate)", fontWeight: 600, fontSize: 14, cursor: "pointer", marginBottom: 4 }}>
@@ -428,7 +483,7 @@ export default function Home() {
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {[
                 { n: "01", title: "Ingresá los datos",  desc: "Tipo, barrio, superficie y características." },
-                { n: "02", title: "El modelo calcula",  desc: "Analiza 342 propiedades del mercado de SMA." },
+                { n: "02", title: "El modelo calcula",  desc: `Analiza ${MODEL_STATS.propiedades} propiedades del mercado de SMA.` },
                 { n: "03", title: "Recibís la valuación", desc: "Valor estimado, rango y proyección a 3 años." },
               ].map(s => (
                 <div key={s.n} style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
@@ -445,8 +500,27 @@ export default function Home() {
 
         <p style={{ textAlign: "center", color: "var(--slate)", fontSize: 11, padding: "20px 0", lineHeight: 1.5 }}>
           Estimación orientativa · <strong style={{ color: "var(--navy)" }}>San Martín de los Andes</strong>
+          <br />
+          Desarrollado por{" "}
+          <a href={SITE_PRINCIPAL} target="_blank" rel="noopener" style={{ color: "var(--navy)", fontWeight: 700, textDecoration: "none" }}>
+            {OWNER} · {BRAND}
+          </a>
         </p>
       </main>
+
+      {/* ── WHATSAPP FLOTANTE (siempre visible) ─────────────── */}
+      <a href={WA_LINK_GENERICO} target="_blank" rel="noopener"
+         aria-label="Consultar por WhatsApp"
+         style={{
+           position: "fixed", right: 16, bottom: resultado ? 20 : 96, zIndex: 50,
+           width: 52, height: 52, borderRadius: "50%", background: "#25D366",
+           display: "flex", alignItems: "center", justifyContent: "center",
+           boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
+         }}>
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="white" aria-hidden="true">
+          <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm0 18.03c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.26 8.26 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 4.54 0 8.24 3.7 8.24 8.24s-3.7 8.24-8.24 8.24zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.51.11-.11.25-.29.37-.43.12-.14.16-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.23-.16-.48-.29z"/>
+        </svg>
+      </a>
 
       {/* ── BOTÓN FIJO EN LA PARTE INFERIOR ─────────────────── */}
       {!resultado && (
@@ -457,6 +531,7 @@ export default function Home() {
           backdropFilter: "blur(12px)",
           borderTop: "1px solid var(--border)",
         }}>
+          <div style={{ maxWidth: 480, margin: "0 auto" }}>
           <button
             form="tasar-form"
             type="submit"
@@ -469,6 +544,7 @@ export default function Home() {
             }}>
             {loading ? "Calculando valuación..." : "Tasar propiedad →"}
           </button>
+          </div>
         </div>
       )}
     </div>
