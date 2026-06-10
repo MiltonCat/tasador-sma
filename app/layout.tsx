@@ -18,6 +18,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(TASADOR_URL),
   title: TITLE,
   description: DESCRIPTION,
+  alternates: { canonical: TASADOR_URL },
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
