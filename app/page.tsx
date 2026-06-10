@@ -519,18 +519,18 @@ export default function Home() {
               </p>
             </div>
 
-            {/* ── INFORME PDF POR EMAIL ─────────────────────────── */}
+            {/* ── INFORME PDF (descarga directa; el email es para la lista de novedades) ── */}
             <div style={{ background: "var(--card)", borderRadius: 18, border: "1px solid var(--border)", padding: "18px 16px" }}>
               <p style={{ color: "var(--navy)", fontWeight: 800, fontSize: 16, marginBottom: 4 }}>
-                Llevate el informe en PDF
+                Descargá el informe en PDF
               </p>
               <p style={{ color: "var(--slate)", fontSize: 12, lineHeight: 1.5, marginBottom: 14 }}>
-                Dejá tu email y descargá el resumen de esta valuación.
-                Te vamos a avisar de novedades del mercado de SMA (sin spam, te das de baja cuando quieras).
+                El PDF con esta valuación se descarga al instante en tu dispositivo (no te lo enviamos por correo).
+                Tu email es para avisarte de novedades del mercado de SMA (sin spam, te das de baja cuando quieras).
               </p>
               {estadoInforme === "listo" ? (
                 <p style={{ color: "var(--emerald-dark)", fontSize: 13, fontWeight: 700 }}>
-                  ✓ Informe descargado. Revisá tu carpeta de descargas.
+                  ✓ Informe descargado en este dispositivo. Buscalo en tu carpeta de descargas.
                 </p>
               ) : (
                 <form onSubmit={handleInforme} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
