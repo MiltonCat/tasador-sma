@@ -5,7 +5,8 @@ export const BRAND = "Catalán Propiedades";
 export const OWNER = "Milton Catalán";
 
 // URL pública de este tasador (para OpenGraph / canonical).
-export const TASADOR_URL = process.env.NEXT_PUBLIC_TASADOR_URL ?? "https://tasador.catalanpropiedades.com.ar";
+// Cambiar a https://tasador.catalanpropiedades.com.ar cuando exista el registro DNS en WNPower.
+export const TASADOR_URL = process.env.NEXT_PUBLIC_TASADOR_URL ?? "https://tasador-sma.vercel.app";
 
 // Stats del modelo — actualizar al reentrenar (fuente: modelo-predictivo-m2).
 export const MODEL_STATS = {
