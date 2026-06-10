@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BRAND, MODEL_STATS, OWNER, SITE_PRINCIPAL, WA_LINK_GENERICO, buildWhatsAppLink } from "./config";
+import { ESCENARIOS, descargarInformePDF, fmtUSD, proyectar } from "./informe";
 
 const API = process.env.NEXT_PUBLIC_API_URL!;
 
@@ -17,18 +18,6 @@ type TasarResponse = {
   ciudad_display: string;
   advertencias: string[];
 };
-
-const ESCENARIOS = [
-  { label: "Conservador", rate: -0.03, color: "#ef4444", bg: "#fef2f2", border: "#fecaca", icon: "↘" },
-  { label: "Moderado",    rate:  0.04, color: "#3b82f6", bg: "#eff6ff", border: "#bfdbfe", icon: "→" },
-  { label: "Optimista",  rate:  0.10, color: "#10b981", bg: "#ecfdf5", border: "#a7f3d0", icon: "↗" },
-];
-
-const fmtUSD = (n: number) =>
-  new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 }).format(Math.round(n));
-
-const proyectar = (base: number, rate: number, years: number) =>
-  base * Math.pow(1 + rate, years);
 
 function Stepper({ value, onChange, min = 0, max = 10 }: {
   value: number; onChange: (v: number) => void; min?: number; max?: number;
@@ -60,6 +49,8 @@ export default function Home() {
   const [slowStart, setSlowStart] = useState(false);
   const [resultado, setResultado] = useState<TasarResponse | null>(null);
   const [error, setError]         = useState<string | null>(null);
+  const [emailInforme, setEmailInforme] = useState("");
+  const [estadoInforme, setEstadoInforme] = useState<"idle" | "generando" | "listo" | "error">("idle");
   const [form, setForm] = useState({
     tipo_propiedad: "Departamento",
     barrio: "Centro",
@@ -70,7 +61,23 @@ export default function Home() {
     ambientes: 3,
     cocheras: 0,
     tiene_pileta: false,
+    tiene_quincho: false,
+    vista_lago: false,
+    a_estrenar: false,
+    tiene_jardin: false,
+    barrio_privado: false,
   });
+
+  // El modelo extrae amenidades de la descripción con keywords (ver KEYWORDS_AMENIDADES
+  // en el backend): armamos un texto sintético con las frases que matchean cada regex.
+  const CARACTERISTICAS: { key: keyof typeof form; label: string; keyword: string }[] = [
+    { key: "tiene_pileta",   label: "Pileta",                keyword: "pileta" },
+    { key: "tiene_quincho",  label: "Quincho / parrilla",    keyword: "quincho" },
+    { key: "vista_lago",     label: "Vista al lago / cerro", keyword: "vista al lago" },
+    { key: "a_estrenar",     label: "A estrenar",            keyword: "a estrenar" },
+    { key: "tiene_jardin",   label: "Jardín / parque",       keyword: "jardín" },
+    { key: "barrio_privado", label: "Barrio privado / golf", keyword: "country" },
+  ];
 
   useEffect(() => {
     fetch(`${API}/barrios?ciudad=sma`)
@@ -105,6 +112,10 @@ export default function Home() {
           ambientes: form.ambientes,
           cocheras: form.cocheras,
           tiene_pileta: form.tiene_pileta,
+          descripcion: CARACTERISTICAS
+            .filter(c => form[c.key])
+            .map(c => c.keyword)
+            .join(", "),
         }),
       });
       if (!res.ok) {
@@ -118,6 +129,41 @@ export default function Home() {
       clearTimeout(timer);
       setLoading(false);
       setSlowStart(false);
+    }
+  }
+
+  async function handleInforme(e: React.FormEvent) {
+    e.preventDefault();
+    if (!resultado) return;
+    setEstadoInforme("generando");
+    // Captura del lead en paralelo: si falla no le negamos el PDF al usuario.
+    fetch("/api/lead", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: emailInforme }),
+    }).catch(() => {});
+    try {
+      await descargarInformePDF({
+        tipo: form.tipo_propiedad,
+        barrio: form.barrio,
+        superficie_cubierta: form.superficie_cubierta,
+        superficie_terreno: form.superficie_terreno,
+        dormitorios: form.dormitorios,
+        banos: form.banos,
+        ambientes: form.ambientes,
+        cocheras: form.cocheras,
+        caracteristicas: CARACTERISTICAS.filter(c => form[c.key]).map(c => c.label),
+        valor_total_usd: resultado.valor_total_usd,
+        valor_m2_usd: resultado.valor_m2_usd,
+        rango_min_usd: resultado.rango_min_usd,
+        rango_max_usd: resultado.rango_max_usd,
+        intervalo_pct: resultado.intervalo_pct,
+        mape_cv: resultado.mape_cv,
+        n_entrenamiento: resultado.n_entrenamiento,
+      });
+      setEstadoInforme("listo");
+    } catch {
+      setEstadoInforme("error");
     }
   }
 
@@ -280,26 +326,33 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Pileta */}
+          {/* Características — el modelo las usa para ajustar la valuación */}
           <div style={{ background: "var(--card)", borderRadius: 18, border: "1px solid var(--border)", padding: "16px" }}>
-            <label style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-              <span style={{ color: "var(--navy)", fontSize: 15, fontWeight: 600 }}>Tiene pileta / piscina</span>
-              <div style={{ position: "relative", width: 50, height: 28, flexShrink: 0 }}>
-                <input type="checkbox" checked={form.tiene_pileta}
-                       onChange={e => set("tiene_pileta", e.target.checked)}
-                       style={{ position: "absolute", opacity: 0, width: 0, height: 0 }} />
-                <div style={{
-                  width: 50, height: 28, borderRadius: 14,
-                  background: form.tiene_pileta ? "var(--emerald)" : "var(--border)",
-                  transition: "background 0.2s",
-                }} />
-                <div style={{
-                  position: "absolute", top: 3, left: form.tiene_pileta ? 25 : 3,
-                  width: 22, height: 22, borderRadius: "50%", background: "white",
-                  boxShadow: "0 1px 4px rgba(0,0,0,0.2)", transition: "left 0.2s",
-                }} />
-              </div>
-            </label>
+            <p style={{ color: "var(--navy)", fontSize: 15, fontWeight: 600, marginBottom: 4 }}>
+              Extras de la propiedad
+            </p>
+            <p style={{ color: "var(--slate)", fontSize: 12, marginBottom: 12 }}>
+              Marcá los que tenga: mejoran la precisión de la valuación.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {CARACTERISTICAS.map(c => {
+                const activo = Boolean(form[c.key]);
+                return (
+                  <button key={c.key} type="button"
+                          onClick={() => set(c.key, !activo)}
+                          aria-pressed={activo}
+                          style={{
+                            padding: "11px 10px", borderRadius: 12, fontSize: 13, fontWeight: 600,
+                            cursor: "pointer", textAlign: "center", transition: "all 0.15s",
+                            border: activo ? "1px solid var(--emerald)" : "1px solid var(--border)",
+                            background: activo ? "var(--emerald)" : "var(--bg)",
+                            color: activo ? "white" : "var(--navy)",
+                          }}>
+                    {activo ? "✓ " : ""}{c.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Aviso slow start */}
@@ -464,6 +517,46 @@ export default function Home() {
               <p style={{ color: "rgba(148,163,184,0.7)", fontSize: 11, textAlign: "center", marginTop: 10 }}>
                 Te contesta Milton Catalán por WhatsApp · Respuesta en menos de 48 hs
               </p>
+            </div>
+
+            {/* ── INFORME PDF POR EMAIL ─────────────────────────── */}
+            <div style={{ background: "var(--card)", borderRadius: 18, border: "1px solid var(--border)", padding: "18px 16px" }}>
+              <p style={{ color: "var(--navy)", fontWeight: 800, fontSize: 16, marginBottom: 4 }}>
+                Llevate el informe en PDF
+              </p>
+              <p style={{ color: "var(--slate)", fontSize: 12, lineHeight: 1.5, marginBottom: 14 }}>
+                Dejá tu email y descargá el resumen de esta valuación.
+                Te vamos a avisar de novedades del mercado de SMA (sin spam, te das de baja cuando quieras).
+              </p>
+              {estadoInforme === "listo" ? (
+                <p style={{ color: "var(--emerald-dark)", fontSize: 13, fontWeight: 700 }}>
+                  ✓ Informe descargado. Revisá tu carpeta de descargas.
+                </p>
+              ) : (
+                <form onSubmit={handleInforme} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <input type="text" name="website" tabIndex={-1} autoComplete="off"
+                         style={{ position: "absolute", left: -9999, opacity: 0, height: 0 }}
+                         aria-hidden="true" />
+                  <input type="email" required placeholder="tu@email.com"
+                         value={emailInforme}
+                         onChange={e => setEmailInforme(e.target.value)}
+                         style={{ width: "100%", padding: "13px 14px", borderRadius: 12, fontSize: 15, fontWeight: 600, background: "var(--bg)", border: "1px solid var(--border)", color: "var(--navy)", boxSizing: "border-box" }} />
+                  <button type="submit" disabled={estadoInforme === "generando"}
+                          style={{
+                            width: "100%", padding: "14px", borderRadius: 12, border: "none",
+                            fontWeight: 800, fontSize: 14, color: "white",
+                            cursor: estadoInforme === "generando" ? "wait" : "pointer",
+                            background: estadoInforme === "generando" ? "#94a3b8" : "var(--navy)",
+                          }}>
+                    {estadoInforme === "generando" ? "Generando informe..." : "Descargar informe gratis"}
+                  </button>
+                  {estadoInforme === "error" && (
+                    <p style={{ color: "#b91c1c", fontSize: 12 }}>
+                      No pudimos generar el PDF. Probá de nuevo o escribime por WhatsApp.
+                    </p>
+                  )}
+                </form>
+              )}
             </div>
 
             {/* Nueva tasación */}
